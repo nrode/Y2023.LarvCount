@@ -83,13 +83,14 @@ MSEdataExperience <- data %>%
   dplyr::mutate(SquaredBias_Obs_No_Larvae = (Mean_Obs_No_Larvae - True_No_Larvae)^2, Var_Obs_No_Larvae = Var_Obs_No_Larvae*(N-1)/N, MSE = Sum_Counting_error_squared/N)%>%
   print(n = 60)
 
-MSEdataReplicate <- data %>%
+MSEdataRoundExperience <- data %>%
   dplyr::mutate(Counting_error_squared = (Obs_No_Larvae - True_No_Larvae)^2) %>%
   dplyr::select(Sample_ID, Round, Previous_Experience, Obs_No_Larvae, True_No_Larvae, Counting_error_squared, Incubation) %>% 
   dplyr::group_by(Sample_ID, Round, Incubation, Previous_Experience) %>%
   dplyr::summarise(Mean_Obs_No_Larvae=mean(Obs_No_Larvae), Sum_Obs_No_Larvae=sum(Obs_No_Larvae), True_No_Larvae=mean(True_No_Larvae), Sum_Counting_error_squared=sum(Counting_error_squared), N=length(Counting_error_squared), Var_Obs_No_Larvae=var(Obs_No_Larvae)) %>%
   dplyr::mutate(SquaredBias_Obs_No_Larvae = (Mean_Obs_No_Larvae - True_No_Larvae)^2, Var_Obs_No_Larvae = Var_Obs_No_Larvae*(N-1)/N, MSE = Sum_Counting_error_squared/N)%>%
   print(n = 60)
+
 ```
 ## Graphical exploration of the data
 ```{r }
@@ -147,7 +148,7 @@ cowplot::save_plot(file =here::here("plots", title_plot),
                   base_width = 12.5/cm(1), dpi = 1200)
 
 ## Error for replicate A or B
-p7 <- MSEdataReplicate %>%
+p7 <- MSEdataRoundExperience %>%
   dplyr::mutate(Category_True_No_Larvae=cut(True_No_Larvae, breaks=c(0, 5, 10, 15, Inf), labels=c("0-5","5-10","10-15","+15"), right = FALSE)) %>%
   ggplot(aes(x=Category_True_No_Larvae, y=sqrt(MSE), color=Round)) + geom_boxplot() + xlab("Number of larvae") + ylab("sqrt(Mean Square Counting Error)")
 p7
@@ -159,11 +160,8 @@ cowplot::save_plot(file = here::here("plots", title_plot),
 
 ```
 
-```{r }
-
-
-```
-```{r }
+# Analyses
+```{r, eval=FALSE }
 head(d_original)
 d_original$Person.ID<- as.factor(d_original$Person.ID)
 d_original$Sample_ID<- as.factor(d_original$Sample_ID)
