@@ -1,0 +1,19 @@
+Package: Y2023.LarvCount
+Title: Analyze count data of D. suzukii larvae
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = "Nicolas",
+           family = "RODE",
+           role = c("aut", "cre"),
+           email = "nicolas.rode@inrae.fr"),
+      person(given = "Ghais",
+           family = "Zriki",
+           role = c("aut"),
+           email = "ghais.zriki@ctifl.fr"))
+Description: Analyze count data of Drosophila suzukii larvae. Compute both inter- and within observer repeatability.
+License: MIT + file LICENSE
+ByteCompile: true
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
