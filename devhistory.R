@@ -20,15 +20,12 @@ dir.create("plots")
 
 ## Create a R directory and a file for functions
 usethis::use_r("utils-pipe")
-usethis::use_r("import_data")
 
 ## Update DESCRIPTION file
 usethis::use_package("here")
 usethis::use_package("readxl")
 usethis::use_package("ggplot2", type = "Depends")
 usethis::use_package("dplyr")
-usethis::use_package("FactoMineR")
-usethis::use_package("factoextra")
 
 ## Update NAMESPACE file
 devtools::document()

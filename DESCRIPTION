@@ -10,10 +10,16 @@ Authors@R:
            family = "Zriki",
            role = c("aut"),
            email = "ghais.zriki@ctifl.fr"))
-Description: Analyze count data of Drosophila suzukii larvae. Compute both inter- and within observer repeatability.
+Description: Analyzes count data of Drosophila suzukii larvae. Computes both inter- and within observer repeatability.
 License: MIT + file LICENSE
 ByteCompile: true
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+Imports: 
+    dplyr,
+    here,
+    readxl
+Depends: 
+    ggplot2
