@@ -16,10 +16,11 @@ editor_options:
 
 ```{r setup, include =FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-devtools::load_all() 
+devtools::load_all()
 ```
 
-# Load count data 
+# Load and check count data
+## Load count data 
 ```{r }
 ## Load count data for each observer
 data <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "ObserverCountData")
@@ -27,9 +28,76 @@ data <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_
 truecounts <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "TrueCounts")
 head(data)
 dim(data)
+head(truecounts)
+
+## Convert as factor
+data$Person.ID <- as.factor(data$Observer_ID)
+data$Sample_ID <- as.factor(data$Sample_ID)
+data$Incubation <- as.factor(data$Incubation)
 
 ```
+## Check count data 
+```{r }
+## Check that 2 replicates per Observer_ID and Sample_ID
+data %>%
+  dplyr::select(Observer_ID, Sample_ID) %>% 
+  dplyr::group_by(Observer_ID, Sample_ID) %>%
+  dplyr::summarise(Count=length(Sample_ID)) %>%
+  print(n = 300)
 
+## Check the mean number of larvae for samples with 48h of incubation or not
+truecounts %>%
+  dplyr::group_by(Incubation) %>%
+  dplyr::summarise(True_No_Larvae_mean=mean(True_No_Larvae))
+
+## Check difference between Obs_No_Larvae and True_No_Larvae
+data %>%
+  dplyr::mutate(Counting_error = abs(Obs_No_Larvae - True_No_Larvae)) %>% 
+  dplyr::select(Previous_Experience, Counting_error, Time_Sec, Incubation, Round) %>% 
+  dplyr::group_by( Incubation, Previous_Experience, Round) %>%
+  dplyr::summarise(Counting_error_mean=mean(Counting_error),
+            Time_Sec_mean=mean(Time_Sec))
+
+```
+## Graphical exploration of the data
+```{r }
+
+## Error as a function of incubation
+P <- data %>%
+  dplyr::mutate(Counting_error = abs((Obs_No_Larvae-True_No_Larvae))/(True_No_Larvae+1)) %>% 
+  dplyr::select(Counting_error, Incubation, Round) %>%
+  ggplot(aes(x=Incubation, y=Counting_error, fill=Round)) + geom_boxplot()
+P
+
+## Error as a function of true number of larvae
+G <- data %>%
+  dplyr::mutate(Counting_error = abs((Obs_No_Larvae-True_No_Larvae))/(True_No_Larvae+1)) %>% 
+  dplyr::select(True_No_Larvae, Counting_error, Incubation) %>%
+  ggplot(aes(x=True_No_Larvae, Counting_error, color=Incubation)) + geom_point()
+G
+
+## Error as a function of time used for counting
+G <- data %>%
+  dplyr::mutate(Counting_error = abs((Obs_No_Larvae-True_No_Larvae))/(True_No_Larvae+1)) %>% 
+  dplyr::select(True_No_Larvae, Counting_error, Incubation, Time_Sec) %>%
+  ggplot(aes(x=Time_Sec,  y=Counting_error, color=Incubation)) + geom_point()
+G
+
+## Error as a function of experience
+G <- data %>%
+  dplyr::mutate(Counting_error = abs((Obs_No_Larvae-True_No_Larvae))/(True_No_Larvae+1)) %>%   dplyr::select(Previous_Experience, Counting_error, Round) %>%
+  ggplot(aes(x=Previous_Experience, y=Counting_error)) + geom_point()
+G
+
+## Time used for counting for replicate A or B
+G <- data %>%
+  dplyr::mutate(Counting_error = abs(log(Obs_No_Larvae+1) - log(True_No_Larvae+1))) %>% 
+  dplyr::select(Time_Sec, Incubation, Round) %>%
+  ggplot(aes(x=Incubation, Time_Sec, color=Round)) + geom_boxplot()
+G
+
+
+```
 ```{r }
 head(d_original)
 d_original$Person.ID<- as.factor(d_original$Person.ID)
@@ -49,11 +117,7 @@ d = d_original %>%
 table(d_original$Previous_Experience,d_original$Incubation)
 require(ggplot2)
 
-G= d_original %>%
-  mutate(Counting_error=No_Larvae - No_of_Larvae) %>% 
-  select(Counting_error,Incubation, Round) %>%
-  ggplot(aes(Incubation,Counting_error, fill=Round))+ geom_boxplot()
-G
+
 ####
 K=  d_original %>%
   mutate(Counting_error=abs(No_Larvae - No_of_Larvae)) %>% 
