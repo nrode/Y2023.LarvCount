@@ -21,4 +21,11 @@ devtools::load_all()
 
 # Load count data 
 ```{r }
+## Load count data for each observer
+data <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "ObserverCountData")
+## Load true counts for each sample
+truecounts <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "TrueCounts")
+head(data)
+dim(data)
+
 ```
