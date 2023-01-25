@@ -7,6 +7,8 @@ rrtools::use_compendium("/Users/rodenico/Documents/Pro/Articles/2023_LarvCount/Y
 usethis::use_git_ignore(".DS_Store")
 usethis::use_build_ignore(".DS_Store")
 usethis::use_git(message = ":see_no_evil: Ban .DS_Store files")
+usethis::use_git_ignore("data/raw_data/~$DS_Counting_trials.xlsx")
+
 
 ## Modify DESCRIPTION file
 usethis::edit_file("DESCRIPTION")
