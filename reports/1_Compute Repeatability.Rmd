@@ -27,7 +27,9 @@ data <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_
 ## Load true counts for each sample
 truecounts <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "TrueCounts")
 head(data)
+View(data)
 dim(data)
+View(truecounts)
 head(truecounts)
 
 ## Convert as factor
@@ -161,6 +163,38 @@ cowplot::save_plot(file = here::here("plots", title_plot),
 ```
 
 # Analyses
+
+```{r}
+# counting mean time/ sample when incubated or not incubated 
+standard_error<-function(x) {
+  sd(x)/sqrt(length(x))
+}
+data %>%
+  dplyr::mutate(Counting_error = abs(Obs_No_Larvae - True_No_Larvae), Category_True_No_Larvae=cut(True_No_Larvae, breaks=c(0, 5, 10, 15, Inf), labels=c("0-5","5-10","10-15","+15"), right = FALSE))%>%
+  dplyr::select(Previous_Experience, Counting_error, Time_Sec, Incubation, Round,Category_True_No_Larvae) %>% 
+  dplyr::group_by( Incubation, Previous_Experience, Category_True_No_Larvae) %>%
+  dplyr::summarise(Counting_error_mean=mean(Counting_error),
+                   Time_Sec_mean=mean(Time_Sec), ST_error = standard_error(Time_Sec))
+```
+
+```{r}
+# COMPARISION BTN COUNTING TIME WITH KRUSKAL WALLIS AND WILLCOXON TEST
+head(data)
+data %>%
+  dplyr::mutate(Category_True_No_Larvae=cut(True_No_Larvae, breaks=c(0, 5, 10, 15, Inf), labels=c("0-5","5-10","10-15","+15"), right = FALSE))%>%
+  dplyr::select(Category_True_No_Larvae, Incubation, Time_Sec) %>%
+  dplyr::group_by(Category_True_No_Larvae)%>%
+  dplyr::summarise (pw_wt=list(Wilcoxon_test=wilcox.test(data$Time_Sec~data$Incubation,p.adjust.method = "bonf")$p.value))%>%
+  ungroup() 
+
+  
+
+
+```
+
+
+
+
 ```{r, eval=FALSE }
 head(d_original)
 d_original$Person.ID<- as.factor(d_original$Person.ID)
