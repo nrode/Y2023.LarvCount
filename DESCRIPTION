@@ -20,6 +20,7 @@ RoxygenNote: 7.2.3
 Imports: 
     dplyr,
     here,
+    lme4,
     readxl
 Depends: 
     ggplot2
