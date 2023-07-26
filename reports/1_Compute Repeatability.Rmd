@@ -65,6 +65,25 @@ levels(summary_time$Category_True_No_Larvae)
 ##write.table(x=summary_time, file=file.path("data", "derived_data", "summary_counting_time.csv"), row.names = FALSE, sep=";")
 
 ```
+# Repeatability
+```{r }
+## Mixed model
+m0 <- lme4::lmer(log(Obs_No_Larvae+1)~1+(1|Sample_ID)+(1|Person.ID), data=data, REML = TRUE)
+summary(m0)
+
+## -(1|Person.ID)
+m1 <- lme4::lmer(log(Obs_No_Larvae+1)~1+(1|Sample_ID), data=data, REML = TRUE)
+summary(m1)
+anova(m0, m1, test="Chisq")
+
+## Extract variance components
+VAR <- as.data.frame(lme4::VarCorr(m0))$vcov
+
+## Compute repeatability among observers
+RepeatabilityAmong <- VAR[1]/sum(VAR)
+## Compute repeatability within observers
+RepeatabilityWithin <-VAR[1]/sum(VAR[c(1, 3)])
+```
 # Time for counting larvae
 ## Plots
 ```{r }
@@ -154,7 +173,7 @@ anova(m10, m11, test="Chisq")
 m12 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+(1|Sample_ID)+(1|Person.ID), data=data)
 anova(m10, m12, test="Chisq")
 
-## step4: Compute the p-values of effect that have been removed
+## step4: Compute the final p-values of effect that have been removed
 ## +Incubation
 m13 <- lme4::lmer(log(Time_Sec)~Incubation*factor(True_No_Larvae)+Round+(1|Sample_ID)+(1|Person.ID), data=data)
 summary(m13)
@@ -292,15 +311,26 @@ anova(m3, m4, test="Chisq")
 
 ## -Round
 m5 <- lme4::lmer(sqrt(Count_error_squared)~Incubation*True_No_Larvae+(1|Sample_ID)+(1|Person.ID), data=Squared_error_data)
-
+summary(m5)
 anova(m3, m5, test="Chisq")
+
+## Step3: We continue with the model with highest P-value (m5) and test for each remaining fixed effects
+## -Incubation*True_No_Larvae
+m6 <- lme4::lmer(sqrt(Count_error_squared)~Incubation+True_No_Larvae+(1|Sample_ID)+(1|Person.ID), data=Squared_error_data)
+anova(m5, m6, test="Chisq")
+
+## step4: Compute the p-values of effect that have been removed
+## +Previous_Experience
+m7 <- lme4::lmer(sqrt(Count_error_squared)~Incubation*True_No_Larvae+Previous_Experience+(1|Sample_ID)+(1|Person.ID), data=Squared_error_data)
+
+anova(m5, m7, test="Chisq")
 
 ## Histogram with time
 ggplot()+ aes(x=residuals(m5)) + 
   geom_histogram(binwidth=0.25)
 
 ```
-# Incubation
+# Test for differences between incubated and non incubated samples
 ```{r}
 ## Check for an absence of differences in the number of larvae between incubated and non incubated samples
 
