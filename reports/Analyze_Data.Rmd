@@ -18,14 +18,34 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 devtools::load_all()
 ```
+# Load and check crushing time data
+## Load crushing time data
+```{r }
+## Load count data for each observer
+CrushingTime <- tidyr::as_tibble(read.csv(file=file.path(here::here(), "data", "raw_data", "CrushingTime.csv"), header = TRUE, sep = ";"))
+CrushingTime <- CrushingTime %>% 
+dplyr::mutate(Duration=as.numeric(format(as.POSIXct(Duration,format="%M:%S"),format="%M"))*60+as.numeric(format(as.POSIXct(Duration, format="%M:%S"),format="%S")))
 
+## Mean crush time per fruit
+mean(CrushingTime$Duration/CrushingTime$Number_of_fruits)
+
+## Variance of crush time
+var(CrushingTime$Duration)/mean(CrushingTime$Number_of_fruits)
+
+## Standard deviation of crush time
+sqrt(var(CrushingTime$Duration)/mean(CrushingTime$Number_of_fruits))
+
+
+```
 # Load and check count data
 ## Load count data 
 ```{r }
 ## Load count data for each observer
-data <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "ObserverCountData")
+data <- tidyr::as_tibble(read.csv(file=file.path(here::here(), "data", "raw_data", "Observed_Count_Data.csv"), header = TRUE, sep = ";"))
+
 ## Load true counts for each sample
-truecounts <- readxl::read_excel(path=file.path(here::here(), "data", "raw_data", "DS_Counting_trials.xlsx"), sheet = "TrueCounts")
+truecounts <- tidyr::as_tibble(read.csv(file=file.path(here::here(), "data", "raw_data", "Expected_Count_Data.csv"), header = TRUE, sep = ";"))
+
 head(data)
 #View(data)
 dim(data)
@@ -36,6 +56,21 @@ head(truecounts)
 data$Person.ID <- as.factor(data$Observer_ID)
 data$Sample_ID <- as.factor(data$Sample_ID)
 data$Incubation <- as.factor(data$Incubation)
+
+## Mean count time per fruit
+mean(data$Time_Sec)
+
+## Standard deviation of count time per fruit
+sd(data$Time_Sec)
+
+## Mean processing time
+mean(CrushingTime$Duration/CrushingTime$Number_of_fruits)+mean(data$Time_Sec)
+
+## Variance in processing time
+var(CrushingTime$Duration)/mean(CrushingTime$Number_of_fruits) + var(data$Time_Sec)
+
+## Standard deviation of processing time
+sqrt(var(CrushingTime$Duration)/mean(CrushingTime$Number_of_fruits) + var(data$Time_Sec))
 
 ```
 ## Check data
@@ -62,7 +97,7 @@ summary_time <- data %>%
 levels(summary_time$Category_True_No_Larvae)
 
 ## Export table
-##write.table(x=summary_time, file=file.path("data", "derived_data", "summary_counting_time.csv"), row.names = FALSE, sep=";")
+write.table(x=summary_time, file=file.path(here::here(), "data", "derived_data", "Table1_summary_counting_time.csv"), row.names = FALSE, sep=";")
 
 ```
 # Repeatability
