@@ -143,78 +143,95 @@ MSEdataSample_IDReplicateIncubationExperience <- data %>%
 
 
 ```
+## Compute rate of FalsePositive and FalseNegative
+```{r }
 
+FalsePositive <- data %>%
+  dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
+  dplyr::filter(True_No_Larvae==0) %>% 
+  dplyr::summarise(FR=mean(dplyr::if_else(Obs_No_Larvae==0, 0, 1)))
+
+FalseNegative <- data %>%
+  dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
+  dplyr::filter(True_No_Larvae>0) %>%
+  dplyr::summarise(FN=mean(dplyr::if_else(Obs_No_Larvae==0, 1, 0)))
+
+FalseNegative <- data %>%
+  dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
+  dplyr::filter(True_No_Larvae>0) %>%
+  dplyr::group_by(Observer_ID) %>% 
+  dplyr::summarise(FN=mean(dplyr::if_else(Obs_No_Larvae==0, 1, 0)))
+
+```
 # Analyses
 ## Time for counting larvae
 ```{r }
 ## Step1:Complete model
-m0 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Previous_Experience+Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m0 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Previous_Experience+Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 summary(m0)
 
 ## -Incubation*True_No_Larvae
-m1 <- lme4::lmer(log(Time_Sec)~Incubation+True_No_Larvae+Round+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
+m1 <- lme4::lmer(log(Time_Sec)~Incubation+True_No_Larvae+Replicate+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 
 anova(m0, m1, test="Chisq")
 
 ## -Previous_Experience
-m2 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m2 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 summary(m2)
-
 anova(m0, m2, test="Chisq")
 
-## -Round
+## -Replicate
 m3 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
-
 anova(m0, m3, test="Chisq")
 
 
 ## Step2: We continue with the model with highest P-value (m1) and test for each remaining fixed effects
 
 ## -Previous_Experience
-m4 <- lme4::lmer(log(Time_Sec)~Incubation+True_No_Larvae+Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m4 <- lme4::lmer(log(Time_Sec)~Incubation+True_No_Larvae+Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m1, m4, test="Chisq")
 
-## -Round
+## -Replicate
 m5 <- lme4::lmer(log(Time_Sec)~Incubation+True_No_Larvae+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m1, m5, test="Chisq")
 
 ## -Incubation
-m6 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+Round+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
+m6 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+Replicate+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m1, m6, test="Chisq")
 
 ## -True_No_Larvae
-m7 <- lme4::lmer(log(Time_Sec)~Incubation+Round+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
+m7 <- lme4::lmer(log(Time_Sec)~Incubation+Replicate+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 summary(m7)
 anova(m1, m7, test="Chisq")
 
 ## Step3: We continue with the model with highest P-value (m6) and test for each remaining fixed effects
 
 ## -True_No_Larvae
-m8 <- lme4::lmer(log(Time_Sec)~Round+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
+m8 <- lme4::lmer(log(Time_Sec)~Replicate+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m6, m8, test="Chisq")
 
-## -Round
+## -Replicate
 m9 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+Previous_Experience+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m6, m9, test="Chisq")
 
 ## -Previous_Experience (Best model)
-m10 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m10 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m6, m10, test="Chisq")
 summary(m10)
 
 ## Step3: We continue with the model with highest P-value (m10) and test for each remaining fixed effects
 
 ## -True_No_Larvae
-m11 <- lme4::lmer(log(Time_Sec)~Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m11 <- lme4::lmer(log(Time_Sec)~Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m10, m11, test="Chisq")
 
-## -Round
+## -Replicate
 m12 <- lme4::lmer(log(Time_Sec)~True_No_Larvae+(1|Sample_ID)+(1|Observer_ID), data=data)
 anova(m10, m12, test="Chisq")
 
 ## step4: Compute the final p-values of effect that have been removed
 ## +Incubation
-m13 <- lme4::lmer(log(Time_Sec)~Incubation*True_No_Larvae+Round+(1|Sample_ID)+(1|Observer_ID), data=data)
+m13 <- lme4::lmer(log(Time_Sec)~Incubation + True_No_Larvae+Replicate+(1|Sample_ID)+(1|Observer_ID), data=data)
 summary(m13)
 anova(m13, m10, test="Chisq")
 
@@ -273,6 +290,13 @@ anova(m2, m6, test="Chisq")
 ## -Time_Sec
 m7 <- lme4::lmer(Bias_Obs_No_Larvae~Incubation*True_No_Larvae+Replicate+(1|Sample_ID), data=MSEdataSample_IDReplicateIncubationExperience)
 anova(m2, m7, test="Chisq")
+
+
+
+## Check that the interaction remains when removing the non incubated sample with a high number of larvae
+m2 <- lme4::lmer(Bias_Obs_No_Larvae~Incubation*True_No_Larvae+Replicate+Mean_Time_Sec+(1|Sample_ID), data=MSEdataSample_IDReplicateIncubationExperience[MSEdataSample_IDReplicateIncubationExperience$True_No_Larvae<30,])
+m5 <- lme4::lmer(Bias_Obs_No_Larvae~Incubation+True_No_Larvae+Replicate+Mean_Time_Sec+(1|Sample_ID), data=MSEdataSample_IDReplicateIncubationExperience[MSEdataSample_IDReplicateIncubationExperience$True_No_Larvae<30,])
+anova(m2, m5, test="Chisq")
 
 ## Check normality of residuals
 dplyr::tibble(res = residuals(m2)) %>%
@@ -366,6 +390,13 @@ anova(m8, m13, test="Chisq")
 m14 <- lme4::lmer(SD_Obs_No_Larvae~True_No_Larvae+Replicate+(1|Sample_ID), data=MSEdataSample_IDReplicateIncubationExperience)
 anova(m8, m14, test="Chisq")
 
+## + Previous_Experience
+m15 <- lme4::lmer(SD_Obs_No_Larvae~True_No_Larvae+Replicate+Mean_Time_Sec+Previous_Experience+(1|Sample_ID), data=MSEdataSample_IDReplicateIncubationExperience)
+summary(m15)
+anova(m15, m8, test="Chisq")
+
+
+
 ## Check normality of residuals
 dplyr::tibble(res = residuals(m8)) %>%
   ggplot(aes(x=res)) + 
@@ -383,16 +414,11 @@ fitPrecisionReplicate2 <- function(x){
   return(coefPrecision[1] + coefPrecision[2]*x + coefPrecision[3]+ coefPrecision[4]*mean(MSEdataSample_IDReplicateIncubationExperience$Mean_Time_Sec))
 }
 ```
-## Analyse repeatability
+## Among observer repeatability
 ```{r }
 ## Mixed model
 m0 <- lme4::lmer(log(Obs_No_Larvae+1)~1+(1|Sample_ID)+(1|Observer_ID), data=data, REML = TRUE)
 summary(m0)
-
-## -(1|Observer_ID)
-m1 <- lme4::lmer(log(Obs_No_Larvae+1)~1+(1|Sample_ID), data=data, REML = TRUE)
-summary(m1)
-anova(m0, m1, test="Chisq")
 
 ## Extract variance components
 VAR <- as.data.frame(lme4::VarCorr(m0))$vcov
@@ -416,7 +442,7 @@ p2A <- MSEdataSample_IDReplicateIncubation %>%
   dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
   ggplot(aes(x=True_No_Larvae, y=Mean_Time_Sec, color=Replicate, shape=Incubation)) +
   geom_point() + xlim(-1, 35) + ylim(0, 125) +
-  xlab("Number of larvae") + ylab("Time for counting larvae (sec.)") + scale_color_discrete(name = "Replicate") +
+  xlab("Exact number of larvae per fruit") + ylab("Time for counting larvae (sec.)") + scale_color_discrete(name = "Count replicate") +
   theme(text = element_text(size = siz)) + 
   geom_line(stat='function', fun=fitTimeReplicate1, color='#F8766D', linetype='solid', size=linesize) + 
   geom_line(stat='function', fun=fitTimeReplicate2, color='#00BFC4', linetype='solid', size=linesize) +
@@ -427,7 +453,7 @@ p2A
 ## Relationship between bias and expected number of larvae
 p2B <- MSEdataSample_IDReplicateIncubation %>%
   dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
-  ggplot(aes(x=True_No_Larvae, y=Bias_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(-20, 1) + xlab("Number of larvae") + ylab("Bias in larval count estimates") + scale_color_discrete(name = "Replicate") + theme(text = element_text(size = siz))+ 
+  ggplot(aes(x=True_No_Larvae, y=Bias_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(-20, 1) + xlab("Exact number of larvae per fruit") + ylab("Bias in larval count estimates") + scale_color_discrete(name = "Count replicate") + theme(text = element_text(size = siz))+ 
   geom_line(stat='function', fun=fitBiasIncubationYes, color='#F8766D', linetype='solid', size=linesize) + 
   geom_line(stat='function', fun=fitBiasIncubationNo, color='#F8766D', linetype='dotted', size=linesize)+ 
   geom_line(stat='function', fun=fitBiasIncubationYesReplicate2, color='#00BFC4', linetype='solid', size=linesize) + 
@@ -439,7 +465,7 @@ p2B
 ## Relationship between variance and expected number of larvae
 p2C <- MSEdataSample_IDReplicateIncubation %>%
   dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
-  ggplot(aes(x=True_No_Larvae, y=SD_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(0, 10) + xlab("Number of larvae") + ylab("Standard deviation \nin larval count estimates") + scale_color_discrete(name = "Replicate") + theme(text = element_text(size = siz))+ 
+  ggplot(aes(x=True_No_Larvae, y=SD_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(0, 10) + xlab("Exact number of larvae per fruit") + ylab("Standard deviation \nin larval count estimates") + scale_color_discrete(name = "Count replicate") + theme(text = element_text(size = siz))+ 
   geom_line(stat='function', fun=fitPrecisionReplicate1, color='#F8766D', linetype='solid', size=linesize) + 
   geom_line(stat='function', fun=fitPrecisionReplicate2, color='#00BFC4', linetype='solid', size=linesize)+
   scale_shape_manual(values = c(1, 16) )
@@ -456,14 +482,6 @@ cowplot::save_plot(file =here::here("plots", title_plot),
                   base_width = 10/cm(1), dpi = 1200)
 
 
-## Relationship between bias and expected number of larvae
-p2B <- MSEdataSample_IDReplicateIncubation %>%
-  dplyr::filter(True_No_Larvae<6) %>%
-  ggplot(aes(x=Mean_Time_Sec, y=Bias_Obs_No_Larvae, shape=Incubation)) + geom_point() + xlim(0, 30) + ylim(-2.5, 1) + xlab("Time for counting larvae (sec.)") + ylab("Bias in larval count estimates") + scale_color_discrete(name = "Replicate") + theme(text = element_text(size = siz))
-
-
-
-p2B
 ```
 # Supp. plots
 ```{r}
