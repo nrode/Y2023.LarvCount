@@ -146,6 +146,9 @@ MSEdataSample_IDReplicateIncubationExperience <- data %>%
 ## Compute rate of FalsePositive and FalseNegative
 ```{r }
 
+mean(truecounts$True_No_Larvae)
+sd(truecounts$True_No_Larvae)
+
 FalsePositive <- data %>%
   dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
   dplyr::filter(True_No_Larvae==0) %>% 
@@ -156,7 +159,13 @@ FalseNegative <- data %>%
   dplyr::filter(True_No_Larvae>0) %>%
   dplyr::summarise(FN=mean(dplyr::if_else(Obs_No_Larvae==0, 1, 0)))
 
-FalseNegative <- data %>%
+FalseNegative_Incubation <- data %>%
+  dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
+  dplyr::filter(True_No_Larvae>0) %>%
+  dplyr::group_by(Incubation) %>%
+  dplyr::summarise(FN=mean(dplyr::if_else(Obs_No_Larvae==0, 1, 0)))
+
+FalseNegative_Observer <- data %>%
   dplyr::select(Observer_ID, Replicate, Time_Sec, Obs_No_Larvae, True_No_Larvae, Incubation) %>%
   dplyr::filter(True_No_Larvae>0) %>%
   dplyr::group_by(Observer_ID) %>% 
@@ -414,7 +423,7 @@ fitPrecisionReplicate2 <- function(x){
   return(coefPrecision[1] + coefPrecision[2]*x + coefPrecision[3]+ coefPrecision[4]*mean(MSEdataSample_IDReplicateIncubationExperience$Mean_Time_Sec))
 }
 ```
-## Among observer repeatability
+## Within and among-observer repeatability
 ```{r }
 ## Mixed model
 m0 <- lme4::lmer(log(Obs_No_Larvae+1)~1+(1|Sample_ID)+(1|Observer_ID), data=data, REML = TRUE)
@@ -476,10 +485,10 @@ figure <- ggpubr::ggarrange(p2A, p2B, p2C,
                     labels = c("A", "B", "C"),
                     ncol = 1, nrow = 3, common.legend = TRUE, legend = "right")
 
-title_plot <- "Fig2_TimeBiasSDbyNumLarvaeandReplicateIncubation.png"
+title_plot <- "Fig2_TimeBiasSDbyNumLarvaeandReplicateIncubation.pdf"
 cowplot::save_plot(file =here::here("plots", title_plot),
                  figure, base_height = 21/cm(1),
-                  base_width = 10/cm(1), dpi = 1200)
+                  base_width = 10/cm(1), dpi = 500)
 
 
 ```
@@ -489,10 +498,10 @@ cowplot::save_plot(file =here::here("plots", title_plot),
 ## Relationship between expected and observed number of larvae
 pS1 <- data %>%
   dplyr::select(Obs_No_Larvae, True_No_Larvae, Incubation, Round) %>%
-  ggplot(aes(x=True_No_Larvae, Obs_No_Larvae, color=Incubation)) + geom_point() + xlim(0, 35) + ylim(0, 35) + geom_abline(intercept = 0, slope = 1)+ xlab("Expected number of larvae") + ylab("Observed number of larvae") + scale_color_discrete(name = "48h-incubation")
+  ggplot(aes(x=True_No_Larvae, Obs_No_Larvae, color=Incubation)) + geom_point() + xlim(0, 35) + ylim(0, 35) + geom_abline(intercept = 0, slope = 1)+ xlab("Exact number of larvae") + ylab("Observed number of larvae") + scale_color_discrete(name = "48h-incubation")
 pS1
 
-title_plot <- "FigS1_Observed_Expected_No_Larvae.png"
+title_plot <- "FigS2_Observed_Exact_No_Larvae.pdf"
 cowplot::save_plot(file =here::here("plots", title_plot),
                  pS1, base_height = 10/cm(1),
                   base_width = 12.5/cm(1), dpi = 1200)
@@ -541,6 +550,11 @@ figure <- ggpubr::ggarrange(p2A, p2B, p2C,
                     labels = c("A", "B", "C"),
                     ncol = 1, nrow = 3, common.legend = TRUE, legend = "bottom")
 figure
+title_plot <- "FigS3_Performance_Method.pdf"
+cowplot::save_plot(file =here::here("plots", title_plot),
+                 figure, base_height = 21/cm(1),
+                  base_width = 10/cm(1), dpi = 1200)
+
 
 ```
 # Test for differences in the number of larvae between incubated and non incubated samples
