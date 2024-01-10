@@ -437,8 +437,7 @@ RepeatabilityAmong <- VAR[1]/sum(VAR)
 ## Compute repeatability within observers
 RepeatabilityWithin <- VAR[1]/sum(VAR[c(1, 3)])
 ```
-
-# Plots
+# Plot fig2 color
 ```{r }
 
 ## Space between replicates
@@ -450,7 +449,7 @@ linesize <- 0.5
 p2A <- MSEdataSample_IDReplicateIncubation %>%
   dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
   ggplot(aes(x=True_No_Larvae, y=Mean_Time_Sec, color=Replicate, shape=Incubation)) +
-  geom_point() + xlim(-1, 35) + ylim(0, 125) +
+  geom_point() + xlim(-1, 35) + ylim(0, 80) +
   xlab("Exact number of larvae per fruit") + ylab("Time for counting larvae (sec.)") + scale_color_discrete(name = "Count replicate") +
   theme(text = element_text(size = siz)) + 
   geom_line(stat='function', fun=fitTimeReplicate1, color='#F8766D', linetype='solid', size=linesize) + 
@@ -474,7 +473,7 @@ p2B
 ## Relationship between variance and expected number of larvae
 p2C <- MSEdataSample_IDReplicateIncubation %>%
   dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
-  ggplot(aes(x=True_No_Larvae, y=SD_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(0, 10) + xlab("Exact number of larvae per fruit") + ylab("Standard deviation \nin larval count estimates") + scale_color_discrete(name = "Count replicate") + theme(text = element_text(size = siz))+ 
+  ggplot(aes(x=True_No_Larvae, y=SD_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(0, 8) + xlab("Exact number of larvae per fruit") + ylab("Standard deviation \nin larval count estimates") + scale_color_discrete(name = "Count replicate") + theme(text = element_text(size = siz))+ 
   geom_line(stat='function', fun=fitPrecisionReplicate1, color='#F8766D', linetype='solid', size=linesize) + 
   geom_line(stat='function', fun=fitPrecisionReplicate2, color='#00BFC4', linetype='solid', size=linesize)+
   scale_shape_manual(values = c(1, 16) )
@@ -486,6 +485,64 @@ figure <- ggpubr::ggarrange(p2A, p2B, p2C,
                     ncol = 1, nrow = 3, common.legend = TRUE, legend = "right")
 
 title_plot <- "Fig2_TimeBiasSDbyNumLarvaeandReplicateIncubation.pdf"
+cowplot::save_plot(file =here::here("plots", title_plot),
+                 figure, base_height = 21/cm(1),
+                  base_width = 10/cm(1), dpi = 500)
+
+
+```
+
+# Plot fig2 black and white
+```{r }
+
+## Space between replicates
+x <- 0.25
+siz <- 10
+linesize <- 0.5
+
+## Relationship between bias and expected number of larvae
+p2A <- MSEdataSample_IDReplicateIncubation %>%
+  dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
+  ggplot(aes(x=True_No_Larvae, y=Mean_Time_Sec, color=Replicate, shape=Incubation)) +
+  geom_point() + xlim(-1, 35) + ylim(0, 80) +
+  xlab("Exact number of larvae per fruit") + ylab("Time for counting larvae (sec.)") + scale_color_discrete(name = "Count replicate") + scale_color_manual(values=c("black", "grey"))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"), text = element_text(size = siz)) + 
+  geom_line(stat='function', fun=fitTimeReplicate1, color='black', linetype='solid', size=linesize) + 
+  geom_line(stat='function', fun=fitTimeReplicate2, color='grey', linetype='solid', size=linesize) +
+     scale_shape_manual(values = c(1, 16) ) 
+
+p2A
+
+## Relationship between bias and expected number of larvae
+p2B <- MSEdataSample_IDReplicateIncubation %>%
+  dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
+  ggplot(aes(x=True_No_Larvae, y=Bias_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(-20, 1) + xlab("Exact number of larvae per fruit") + ylab("Bias in larval count estimates") + scale_color_discrete(name = "Count replicate") + scale_color_manual(values=c("black", "grey")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"), text = element_text(size = siz))+ 
+  geom_line(stat='function', fun=fitBiasIncubationYes, color='black', linetype='solid', size=linesize) + 
+  geom_line(stat='function', fun=fitBiasIncubationNo, color='black', linetype='dotted', size=linesize)+ 
+  geom_line(stat='function', fun=fitBiasIncubationYesReplicate2, color='grey', linetype='solid', size=linesize) + 
+  geom_line(stat='function', fun=fitBiasIncubationNoReplicate2, color='grey', linetype='dotted', size=linesize)+
+     scale_shape_manual(values = c(1, 16) )
+p2B
+
+
+## Relationship between variance and expected number of larvae
+p2C <- MSEdataSample_IDReplicateIncubation %>%
+  dplyr::mutate(True_No_Larvae=dplyr::if_else(Replicate==1, True_No_Larvae-x, True_No_Larvae+x)) %>%
+  ggplot(aes(x=True_No_Larvae, y=SD_Obs_No_Larvae, color=Replicate, shape=Incubation)) + geom_point() + xlim(-1, 35) + ylim(0, 8) + xlab("Exact number of larvae per fruit") + ylab("Standard deviation \nin larval count estimates") + scale_color_discrete(name = "Count replicate") + scale_color_manual(values=c("black", "grey")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"), text = element_text(size = siz))+ 
+  geom_line(stat='function', fun=fitPrecisionReplicate1, color='black', linetype='solid', size=linesize) + 
+  geom_line(stat='function', fun=fitPrecisionReplicate2, color='grey', linetype='solid', size=linesize)+
+  scale_shape_manual(values = c(1, 16) )
+p2C
+
+
+figure <- ggpubr::ggarrange(p2A, p2B, p2C,
+                    labels = c("A", "B", "C"),
+                    ncol = 1, nrow = 3, common.legend = TRUE, legend = "right")
+
+title_plot <- "Fig2B&W_TimeBiasSDbyNumLarvaeandReplicateIncubation.pdf"
 cowplot::save_plot(file =here::here("plots", title_plot),
                  figure, base_height = 21/cm(1),
                   base_width = 10/cm(1), dpi = 500)
@@ -550,7 +607,7 @@ figure <- ggpubr::ggarrange(p2A, p2B, p2C,
                     labels = c("A", "B", "C"),
                     ncol = 1, nrow = 3, common.legend = TRUE, legend = "bottom")
 figure
-title_plot <- "FigS3_Performance_Method.pdf"
+title_plot <- "FigS3_Performance_Method.png"
 cowplot::save_plot(file =here::here("plots", title_plot),
                  figure, base_height = 21/cm(1),
                   base_width = 10/cm(1), dpi = 1200)
